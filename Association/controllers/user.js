@@ -3,41 +3,42 @@ const userModel = model.users;
 const profileModel = model.profile;
 const courseModel = model.courses;
 const userCourseModel = model.userCourses;
+const { Op } = require("sequelize");
+
+userModel.hasOne(profileModel);
+profileModel.belongsTo(userModel);
+userModel.hasMany(courseModel);
+courseModel.belongsTo(userModel);
+userModel.belongsToMany(courseModel, {
+  through: userCourseModel,
+});
+courseModel.belongsToMany(userModel, {
+  through: userCourseModel,
+});
 
 const user = async (req, res) => {
-  userModel.hasOne(profileModel);
-  profileModel.belongsTo(userModel);
-  userModel.hasMany(courseModel);
-  courseModel.belongsTo(userModel);
-  userModel.belongsToMany(courseModel, {
-    through: userCourseModel,
-  });
-  courseModel.belongsToMany(userModel, {
-    through: userCourseModel,
-  });
-
   // const data = await userModel.findAll({
   //   include: courseModel,
   // });
-
-  const data1 = await userModel.create(
-    {
-      name: "test1",
-      email: "test1@gmail.com",
-      courses: [
-        {
-          name: "node",
-          userId: 7,
-          userCourses: {},
-        },
-      ],
-    },
-    {
-      include: courseModel,
-    }
-  );
-  res.send(data1);
-
+  // var uid = 32;
+  // uid = uid++;
+  // const data1 = await userModel.create(
+  //   {
+  //     name: "test1",
+  //     email: "test1@gmail.com",
+  //     courses: [
+  //       {
+  //         name: "node",
+  //         userId: uid,
+  //         userCourses: {},
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     include: courseModel,
+  //   }
+  // );
+  // res.send(data1);
   // const data = [
   //   {
   //     name: "node",
@@ -72,18 +73,14 @@ const user = async (req, res) => {
   //     userId: 2,
   //   },
   // ];
-
   // const coursesData = await courseModel.bulkCreate(data);
   // const data = await profileModel.findAll({ include: userModel });
-
   // const data = await userModel.findAll({
   //     include: {
   //         model:profileModel
   //     }
   // })
-
   // res.send(data);
-
   //   const data = [
   //     {
   //       userId: 1,
@@ -117,7 +114,6 @@ const user = async (req, res) => {
   //   ];
   //   const userData = await userModel.bulkCreate(data2);
   // const profileData = await profileModel.bulkCreate(data);
-
   //   const data = await userModel.create({
   //     name: "test",
   //     email: "test@gmail.com",
@@ -131,7 +127,6 @@ const user = async (req, res) => {
   //     });
   //   }
   //   const profile = await profileModel.bulkCreate(data);
-
   //   const user = await userModel.findOne({
   //       where: {
   //           id:1
@@ -141,4 +136,74 @@ const user = async (req, res) => {
   //   res.send(user);
 };
 
-module.exports = { user };
+const getData = async (req, res, next) => {
+  const draw = req.query.draw;
+  const start = req.query.start;
+  const length = req.query.length;
+  var order = req.query.order;
+  const search = req.query.search;
+  const searchValue = search.value;
+
+  const recordsTotal = await userModel.count();
+  const recordsFiltered = recordsTotal;
+
+  console.log("draw", draw);
+  console.log("start", start);
+  console.log("length", length);
+  console.log("order", order);
+  console.log("search", search);
+  console.log("searchValue", searchValue);
+
+  if (order) {
+    var column = order[0].column;
+    var dir = order[0].dir;
+    var colName = req.query.columns[column].data;
+    var orderBy = [[colName, dir]];
+  } else {
+    var orderBy = ["id"];
+  }
+
+  // if (searchValue.length > 0) {
+  //   var where = {
+  //     [Op.or]: [
+  //       {
+  //         name: {
+  //           [Op.like]: "%" + searchValue + "%",
+  //         },
+  //         email: {
+  //           [Op.like]: "%" + searchValue + "%",
+  //         },
+  //       },
+  //     ],
+  //   };
+  // } else {
+  //   var where = {};
+  // }
+
+  const data = await userModel.findAll({
+    offset: parseInt(start),
+    limit: parseInt(length),
+    where: {
+      [Op.or]: {
+        name: {
+          [Op.like]: `${searchValue}%`,
+        },
+        email: {
+          [Op.like]: `${searchValue}%`,
+        },
+      },
+    },
+    order: orderBy,
+  });
+  res.json({
+    draw: parseInt(draw),
+    data: data,
+    recordsTotal: recordsTotal,
+    recordsFiltered: recordsFiltered,
+  });
+};
+
+const dataTable = async (req, res) => {
+  res.render("data_table");
+};
+module.exports = { user, getData, dataTable };
