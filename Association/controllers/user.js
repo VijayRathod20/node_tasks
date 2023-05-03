@@ -4,17 +4,18 @@ const profileModel = model.profile;
 const courseModel = model.courses;
 const userCourseModel = model.userCourses;
 const { Op } = require("sequelize");
+const faker = require("faker");
 
 userModel.hasOne(profileModel);
 profileModel.belongsTo(userModel);
 userModel.hasMany(courseModel);
 courseModel.belongsTo(userModel);
-userModel.belongsToMany(courseModel, {
-  through: userCourseModel,
-});
-courseModel.belongsToMany(userModel, {
-  through: userCourseModel,
-});
+// userModel.belongsToMany(courseModel, {
+//   through: userCourseModel,
+// });
+// courseModel.belongsToMany(userModel, {
+//   through: userCourseModel,
+// });
 
 const user = async (req, res) => {
   // const data = await userModel.findAll({
@@ -134,6 +135,23 @@ const user = async (req, res) => {
   //       include:[profileModel]
   //   })
   //   res.send(user);
+  // for (let i = 0; i < 10; i++) {
+  //   userModel.create(
+  //     {
+  //       name: Math.random().toString(36).substring(2, 7),
+  //       email: Math.random().toString(36).substring(2, 7) + "gmail.com",
+  //       phoneNo: Math.floor(100000000 + Math.random() * 900000000),
+  //       courses: [
+  //         {
+  //           name: Math.random().toString(36).substring(2, 7),
+  //         },
+  //       ],
+  //     },
+  //     {
+  //       include: [courseModel],
+  //     }
+  //   );
+  // }
 };
 
 const getData = async (req, res, next) => {
@@ -163,6 +181,10 @@ const getData = async (req, res, next) => {
     var orderBy = ["id"];
   }
 
+   if (column == 4) {
+     var orderBy = [[courseModel, "name", dir]];
+   }
+
   // if (searchValue.length > 0) {
   //   var where = {
   //     [Op.or]: [
@@ -183,6 +205,7 @@ const getData = async (req, res, next) => {
   const data = await userModel.findAll({
     offset: parseInt(start),
     limit: parseInt(length),
+    order: orderBy,
     where: {
       [Op.or]: {
         name: {
@@ -193,8 +216,12 @@ const getData = async (req, res, next) => {
         },
       },
     },
-    order: orderBy,
+    include: [courseModel],
   });
+  // const data2 =await userModel.findAll({
+  // include:courseModel
+  // })
+  // console.log(data2);
   res.json({
     draw: parseInt(draw),
     data: data,
@@ -206,4 +233,5 @@ const getData = async (req, res, next) => {
 const dataTable = async (req, res) => {
   res.render("data_table");
 };
+
 module.exports = { user, getData, dataTable };
