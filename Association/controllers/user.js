@@ -181,9 +181,9 @@ const getData = async (req, res, next) => {
     var orderBy = ["id"];
   }
 
-   if (column == 4) {
-     var orderBy = [[courseModel, "name", dir]];
-   }
+  if (column == 4) {
+    var orderBy = [[courseModel, "name", dir]];
+  }
 
   // if (searchValue.length > 0) {
   //   var where = {
@@ -201,17 +201,22 @@ const getData = async (req, res, next) => {
   // } else {
   //   var where = {};
   // }
-
+  const test = [courseModel, "name"];
+  console.log(test);
   const data = await userModel.findAll({
     offset: parseInt(start),
     limit: parseInt(length),
     order: orderBy,
+    subQuery: false,
     where: {
       [Op.or]: {
         name: {
           [Op.like]: `${searchValue}%`,
         },
         email: {
+          [Op.like]: `${searchValue}%`,
+        },
+        "$courses.name$": {
           [Op.like]: `${searchValue}%`,
         },
       },
