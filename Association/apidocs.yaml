@@ -1,0 +1,71 @@
+---
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: Test
+  description: Test api for swagger
+host: localhost:3000
+basePath: /
+schemes:
+  - http
+paths:
+  /:
+    get:
+      summary: Testing swagger api docs
+      responses:
+        "200":
+          description: response from the root url
+  /get:
+    get:
+      summary: getting data from data base
+      responses:
+        "200":
+          description: data fetch from the database
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                id:
+                  type: integer
+                name:
+                  type: string
+  /get/{id}:
+    get:
+      summary: get user by id
+      consume:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          type: string
+          required: true
+      responses:
+        "200":
+          description: get data of one user0
+          schema:
+            type: object
+
+  /user:
+    post:
+      summary: Creates a new user.
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: user
+          description: The user to create.
+          schema:
+            type: object
+            required:
+              - user
+            properties:
+              name:
+                type: string
+              email:
+                type: string
+              phoneNo:
+                type: string
+      responses:
+        201:
+          description: Created

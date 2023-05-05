@@ -152,6 +152,8 @@ const user = async (req, res) => {
   //     }
   //   );
   // }
+
+  res.status(200).send("hello!!");
 };
 
 const getData = async (req, res, next) => {
@@ -239,4 +241,23 @@ const dataTable = async (req, res) => {
   res.render("data_table");
 };
 
-module.exports = { user, getData, dataTable };
+const get = async (req, res) => {
+  const data = await userModel.findAll();
+  res.json(data);
+};
+
+const getOne = async (req, res) => {
+  const id = req.params.id;
+  console.log(id);
+  const data = await userModel.findByPk(id);
+  res.json(data);
+};
+
+const postUser = async (req, res) => {
+  const data = req.body;
+  console.log(data);
+  const user = userModel.create(data);
+
+  res.json(user);
+};
+module.exports = { user, getData, dataTable, get, getOne, postUser };
